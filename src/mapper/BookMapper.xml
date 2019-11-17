@@ -1,0 +1,74 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.BookMapper">
+    <resultMap id="BookMap" type="book"><!--type里的user不分大小写-->
+    <id column="book_id" property="book_id"></id>
+    <result column="name" property="name"></result>
+    <result column="author" property="author"></result>
+    <result column="booknumber" property="booknumber"></result>
+    <result column="price" property="price"></result>
+    <result column="press" property="press"></result>
+        <result column="borrower" property="borrower"></result>
+        <result column="Headpathbook" property="Headpathbook"></result>
+    </resultMap>
+    <sql id="sql">
+           SELECT p.book_id,p.name ,p.booknumber,p.press,p.borrower,u.name
+        FROM table_book AS p LEFT JOIN borrow_table AS b ON b.book_id=p.id
+        LEFT JOIN user AS  u ON b.user_id = u.id
+    </sql>
+
+    <insert id="RegisterBook" parameterType="book">
+        insert into table_book(book_id,name,author,booknumber,price,press,borrower) values(#{book_id},#{name},#{author},#{booknumber},#{price},#{press},#{borrower})
+    </insert>
+
+    <update id="updateBook" parameterType="book">
+        update table_book set name=#{name},author=#{author},booknumber=#{booknumber},price=#{price},press=#{press},borrower=#{borrower} where book_id=#{book_id}
+    </update>
+
+    <delete id="deleteBookByid" parameterType="java.lang.Integer">
+        delete from table_book where book_id=#{book_id}
+    </delete>
+
+    <select id="getBookByid" parameterType="java.lang.Integer" resultType="pojo.Book">
+        select * from table_book where book_id=#{book_id}
+    </select>
+
+    <select id="getBookList" parameterType="book" resultType="Book">
+        <include refid="sql"/>
+        <where>
+            <if test="name!=null and name!=''" >
+                and p.name like '%${name}%'
+            </if>
+            <if test="author!=null and author!=''" >
+                and p.author like '%${author}%'
+            </if>
+            <if test="borrower!=null and borrower!=''" >
+                and p.borrower=#{borrower}
+            </if>
+        </where>
+    </select>
+<!--借阅-->
+    <insert id="borrow" parameterType="book">
+        insert into borrow_table(id,book_id,user_id) values(#{id},#{book_id},#{user_id})
+    </insert>
+
+    <update id="borrowUpdate" parameterType="book">
+    update table_book  set borrower="1" where book_id=#{book_id}
+</update>
+    <select id="selectBookByWhere" parameterType="book" resultType="book">
+        select * from table_book
+        <where>
+            <if test="name != null and name != ''">
+                and name like '%${name}%'
+            </if>
+            <if test="author != null and author !=''">
+                and author = '${author}'
+            </if>
+            <if test="lend !=null and lend !=''">
+                and borrower =#{borrower}
+            </if>
+        </where>
+    </select>
+
+</mapper>
